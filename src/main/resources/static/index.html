@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pagination Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        .pagination button {
+            padding: 5px 10px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+            cursor: pointer;
+        }
+        .pagination button:disabled {
+            background-color: #e0e0e0;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+<h1>User List with Pagination</h1>
+<table>
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Name</th>
+    </tr>
+    </thead>
+    <tbody id="userTableBody">
+    <!-- Users will be loaded here -->
+    </tbody>
+</table>
+<div class="pagination">
+    <button id="prevButton" disabled>Previous</button>
+    <button id="nextButton" disabled>Next</button>
+</div>
+
+<script>
+    let currentPage = 0;
+    const pageSize = 5;
+
+    const userTableBody = document.getElementById('userTableBody');
+    const prevButton = document.getElementById('prevButton');
+    const nextButton = document.getElementById('nextButton');
+
+    async function fetchUsers(page, size) {
+        const response = await fetch(`/users?page=${page}&size=${size}`);
+        if (!response.ok) {
+            console.error('Failed to fetch users');
+            return { content: [], totalPages: 0 };
+        }
+        return response.json();
+    }
+
+    async function loadUsers(page) {
+        const data = await fetchUsers(page, pageSize);
+        userTableBody.innerHTML = '';
+        data.content.forEach(user => {
+            const row = document.createElement('tr');
+            row.innerHTML = `<td>${user.id}</td><td>${user.name}</td>`;
+            userTableBody.appendChild(row);
+        });
+
+        // Update pagination buttons
+        prevButton.disabled = page === 0;
+        nextButton.disabled = page >= data.totalPages - 1;
+
+        currentPage = page;
+    }
+
+    // Event listeners for pagination
+    prevButton.addEventListener('click', () => {
+        if (currentPage > 0) {
+            loadUsers(currentPage - 1);
+        }
+    });
+
+    nextButton.addEventListener('click', () => {
+        loadUsers(currentPage + 1);
+    });
+
+    // Initial load
+    loadUsers(0);
+</script>
+</body>
+</html>
